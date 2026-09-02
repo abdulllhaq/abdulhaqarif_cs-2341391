@@ -1,0 +1,118 @@
+class Solution {
+    public boolean isSolvable(String[] words, String result) {
+        int[] map = new int[26];
+        boolean[] used = new boolean[10];
+        boolean[] leading = new boolean[26];
+
+        Arrays.fill(map, -1);
+
+        int maxLen = result.length();
+
+        for (String word : words) {
+            maxLen = Math.max(maxLen, word.length());
+
+            if (word.length() > 1)
+                leading[word.charAt(0) - 'A'] = true;
+        }
+
+        if (result.length() > 1)
+            leading[result.charAt(0) - 'A'] = true;
+
+        return dfs(words, result, map, used, leading, 0, 0, 0);
+    }
+
+    private boolean dfs(
+        String[] words,
+        String result,
+        int[] map,
+        boolean[] used,
+        boolean[] leading,
+        int col,
+        int wordIndex,
+        int sum
+    ) {
+        if (col == result.length() && wordIndex == words.length) {
+            return sum == 0;
+        }
+
+        if (wordIndex < words.length) {
+            String word = words[wordIndex];
+
+            if (col < word.length()) {
+                char c = word.charAt(word.length() - 1 - col);
+                int idx = c - 'A';
+
+                if (map[idx] != -1) {
+                    return dfs(
+                        words, result, map, used, leading,
+                        col, wordIndex + 1, sum + map[idx]
+                    );
+                }
+
+                for (int d = 0; d <= 9; d++) {
+                    if (used[d])
+                        continue;
+
+                    if (d == 0 && leading[idx])
+                        continue;
+
+                    map[idx] = d;
+                    used[d] = true;
+
+                    if (dfs(
+                        words, result, map, used, leading,
+                        col, wordIndex + 1, sum + d
+                    ))
+                        return true;
+
+                    map[idx] = -1;
+                    used[d] = false;
+                }
+
+                return false;
+            }
+
+            return dfs(
+                words, result, map, used, leading,
+                col, wordIndex + 1, sum
+            );
+        }
+
+        char c = result.charAt(result.length() - 1 - col);
+        int idx = c - 'A';
+
+        int digit = sum % 10;
+        int carry = sum / 10;
+
+        if (map[idx] != -1) {
+            if (map[idx] != digit)
+                return false;
+
+            return dfs(
+                words, result, map, used, leading,
+                col + 1, 0, carry
+            );
+        }
+
+        if (used[digit])
+            return false;
+
+        if (digit == 0 && leading[idx])
+            return false;
+
+        map[idx] = digit;
+        used[digit] = true;
+
+        if (dfs(
+            words, result, map, used, leading,
+            col + 1, 0, carry
+        ))
+            return true;
+
+        map[idx] = -1;
+        used[digit] = false;
+
+        return false;
+        
+    }
+}
