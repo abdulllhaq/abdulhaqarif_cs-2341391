@@ -1,0 +1,43 @@
+class Solution {
+    public List<Integer> findNumOfValidWords(String[] words, String[] puzzles) {
+        List<Integer> ans = new ArrayList<>();
+        int[] freq = new int[1 << 26];
+
+        for (String word : words) {
+            int mask = 0;
+
+            for (char c : word.toCharArray()) {
+                mask |= 1 << (c - 'a');
+            }
+
+            if (Integer.bitCount(mask) <= 7) {
+                freq[mask]++;
+            }
+        }
+
+        for (String puzzle : puzzles) {
+            int mask = 0;
+
+            for (char c : puzzle.toCharArray()) {
+                mask |= 1 << (c - 'a');
+            }
+
+            int first = 1 << (puzzle.charAt(0) - 'a');
+            int remaining = mask ^ first;
+            int count = 0;
+
+            for (int sub = remaining; ; sub = (sub - 1) & remaining) {
+                int wordMask = sub | first;
+                count += freq[wordMask];
+
+                if (sub == 0)
+                    break;
+            }
+
+            ans.add(count);
+        }
+
+        return ans;
+        
+    }
+}
